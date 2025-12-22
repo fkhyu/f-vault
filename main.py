@@ -7,6 +7,7 @@ from termcolor import colored, cprint
 from getpass import getpass
 from bullet import Bullet, colors
 import pyperclip
+import base64
 
 session_started = False
 session_start_time = None
@@ -486,14 +487,8 @@ def change_master_password():
 
 
 def secret_function():
-    the_message = """
- ██████╗███████╗
-██╔════╝╚════██║
-███████╗    ██╔╝
-██╔═══██╗  ██╔╝ 
-╚██████╔╝  ██║  
- ╚═════╝   ╚═╝  
-"""
+    the_message = "IOKWiOKWiOKWiOKWiOKWiOKWiOKVl+KWiOKWiOKWiOKWiOKWiOKWiOKWiOKVlwrilojilojilZTilZDilZDilZDilZDilZ3ilZrilZDilZDilZDilZDilojilojilZEK4paI4paI4paI4paI4paI4paI4paI4pWXICAgIOKWiOKWiOKVlOKVnQrilojilojilZTilZDilZDilZDilojilojilZcgIOKWiOKWiOKVlOKVnSAK4pWa4paI4paI4paI4paI4paI4paI4pWU4pWdICDilojilojilZEgIAog4pWa4pWQ4pWQ4pWQ4pWQ4pWQ4pWdICAg4pWa4pWQ4pWdICA="
+    the_message = base64.b64decode(the_message).decode()
     clear()
     print(cntr(the_message, True, True, 0, True))
     time.sleep(3)
