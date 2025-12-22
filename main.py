@@ -120,33 +120,39 @@ def decrypt_vault(blob: bytes, password: str) -> bytes:
 
 def home():
     menu_text = """
-==--==--== Home ==--==--==
+-==--==--== Home ==--==--==-
 
-1. Add New Password 
-2. My Passwords     
-3. Remove Password  
-0. Logout           
-          
-==--==--==--==--==--==--==
+1. Add New Password         
+2. My Passwords             
+3. Update Password          
+4. Remove Password          
+9. Change Master Password   
+0. Logout                   
+
+-==--==--==--==--==--==--==-
           """ 
     if not session_started:
         print("Please log in first.")
         return
-    print(cntr(ASCII_logo, True, True, 10, False))
+    print(cntr(ASCII_logo, True, True, 15, False))
     print(cntr(menu_text, True, False, 0, True))
     
     handle_home_choice()
 
 
 def handle_home_choice():    
-    choice = input("").strip()
+    choice = input(cntr("", True, False, 0, False)).strip()
     
     if choice == "1":
         add_new_password()
     elif choice == "2":
         my_passwords()
     elif choice == "3":
+        update_password()
+    elif choice == "4":
         remove_password()
+    elif choice == "9":
+        change_master_password()
     elif choice == "0":
         logout()
 
@@ -158,6 +164,70 @@ def logout():
     session_password = None
     print("You have been logged out.")
     exit()
+
+def update_password():
+    if not session_started:
+        login()
+        return
+    
+    if not os.path.exists("vault.bin"):
+        print(cntr("No passwords stored yet.", True, True, 0, True))
+        time.sleep(1)
+        clear()
+        home()
+        return
+    
+    clear()
+
+    with open("vault.bin", "rb") as f:
+        blob = f.read()
+
+        try:
+            vault = decrypt_vault(blob, session_password)
+        except Exception as e:
+            cprint(cntr("Failed to decrypt vault. Cannot update passwords.", True, True, 0, True), "red")
+            time.sleep(1)
+            clear()
+            home()
+            return
+        
+    passwords = []
+
+    for entry in vault["entries"]:
+        passwords.append(json.dumps(entry))
+
+    choices = ["Back to Home"] + [json.loads(p)['title'] + " (" + json.loads(p)['username'] + ")" for p in passwords]
+
+    cli = Bullet(
+        prompt = "Select a password to update:",
+        choices = choices,
+        margin = 1,
+        shift = 1,
+        bullet = "➤"
+    )
+
+    selected_password = cli.launch()
+
+    if selected_password == "Back to Home":
+        clear()
+        home()
+        return
+    
+    selected_index = choices.index(selected_password)
+
+    new_password = getpass(cntr("Enter the new password:\n", True, True, 0, True))
+    vault["entries"][selected_index - 1]['password'] = new_password
+
+    encrypted_blob = encrypt_vault(vault, session_password)
+
+    with open("vault.bin", "wb") as f:
+        f.write(encrypted_blob)
+
+    clear()
+    cprint(cntr("Password updated successfully!", True, True, 0, True), 'green')
+    time.sleep(1)
+    clear()
+    home()
 
 def remove_password():
     clear()
@@ -189,7 +259,7 @@ def remove_password():
         for entry in vault["entries"]:
             passwords.append(json.dumps(entry))
 
-        choices = [json.loads(p)['title'] + " (" + json.loads(p)['username'] + ")" for p in passwords]
+        choices = ["Back to Home"] + [json.loads(p)['title'] + " (" + json.loads(p)['username'] + ")" for p in passwords]
 
         cli = Bullet(
             prompt = "Select a password to remove:",
@@ -202,6 +272,10 @@ def remove_password():
         )
 
         selected_password = cli.launch()
+        if selected_password == "Back to Home":
+            clear()
+            home()
+            return
         selected_index = choices.index(selected_password)
 
         confirmation = input(cntr(f"Are you sure you want to remove the password entry '{selected_password}'? (y/n): ", True, False, 0, True)).strip().lower()
@@ -213,7 +287,7 @@ def remove_password():
             home()
             return
 
-        del vault['entries'][selected_index]
+        del vault['entries'][selected_index - 1]
 
         encrypted_blob = encrypt_vault(vault, session_password)
         with open("vault.bin", "wb") as f:
@@ -228,31 +302,39 @@ def remove_password():
 def add_new_password():
     clear()
     if not session_started:
-        print("Please log in first.")
+        login()
         return
     
     # ask as long as values are empty
 
     while True:
-        title = input("Enter the title for the password (e.g. Gmail):\n")
+        print(cntr("Enter the title (e.g. Gmail):\n", True, True, 0, False))
+        title = input(cntr("", True, False, 0, False))
         if title.strip() == "":
             print("Title cannot be empty.")
             continue
         break
+    
+    clear()
 
     while True:
-        username = input(f"Enter the username/email associated with {title}:\n")
+        print(cntr("Enter the username/email:\n", True, True, 0, False))
+        username = input(cntr("", True, False, 0, False))
         if username.strip() == "":
             print("Username/Email cannot be empty.")
             continue
         break
 
+    clear()
+
     while True:
-        password = getpass(f"Enter the password for {title}:\n")
+        password = getpass(cntr(f"Enter the password for {title}:\n", True, True, 0, True))
         if password.strip() == "":
             print("Password cannot be empty.")
             continue
         break
+
+    clear()
 
     vault = {}
     if os.path.exists("vault.bin"):
@@ -324,7 +406,7 @@ def my_passwords():
         for entry in vault["entries"]:
             passwords.append(json.dumps(entry))
 
-        choices = [json.loads(p)['title'] + " (" + json.loads(p)['username'] + ")" for p in passwords]
+        choices = ["Back to Home"] + [json.loads(p)['title'] + " (" + json.loads(p)['username'] + ")" for p in passwords]
 
         cli = Bullet(
             prompt = "Select a password to copy:\n",
@@ -334,11 +416,13 @@ def my_passwords():
             bullet = "➤"
         )
 
-        
-
         selected_password = cli.launch()
+        if selected_password == "Back to Home":
+            clear()
+            home()
+            return
         selected_index = choices.index(selected_password)
-        password = vault["entries"][selected_index]['password']
+        password = vault["entries"][selected_index - 1]['password']
 
         pyperclip.copy(password)
 
@@ -348,10 +432,61 @@ def my_passwords():
         clear()
         home()
 
+def change_master_password():
+    global session_password
+    clear()
+    if not session_started:
+        login()
+        return
+    
+    if not os.path.exists("master.key"):
+        register()
+
+    print(cntr("Enter your current master password:", True, True, 0, True))
+    current_password = getpass(cntr("", True, False, 0, True))
+
+    if current_password != session_password:
+        cprint(cntr("Incorrect current master password.", True, True, 0, True), "red")
+        time.sleep(1)
+        clear()
+        home()
+        return
+    
+    new_password = getpass(cntr("Enter your new master password:\n", True, True, 0, True))
+    confirm_password = getpass(cntr("Confirm your new master password:\n", True, True, 0, True))
+
+    while True:
+        if new_password != confirm_password:
+            cprint(cntr("Passwords do not match. Please try again.", True, True, 0, True), "red")
+            time.sleep(1)
+            clear()
+            new_password = getpass(cntr("Enter your new master password:\n", True, True, 0, True))
+            confirm_password = getpass(cntr("Confirm your new master password:\n", True, True, 0, True))
+        else:
+            break
+
+    vault = decrypt_vault(open("vault.bin", "rb").read(), session_password)
+    encrypted_blob = encrypt_vault(vault, new_password)
+    with open("vault.bin", "wb") as f:
+        f.write(encrypted_blob)
+
+    ph = argon2.PasswordHasher()
+    hashed_password = ph.hash(new_password)
+    with open("master.key", "wb") as f:
+        f.write(hashed_password.encode())
+
+    session_password = new_password
+    clear()
+    cprint(cntr("Master password changed successfully.", True, True, 0, True), "green")
+    time.sleep(1)
+    clear()
+    home()
+
+
 if __name__ == "__main__":
     clear()
     cprint(cntr(ASCII_logo, True, True, 0, True), 'cyan')
-    time.sleep(2)
+    time.sleep(1)
     clear()
     if not os.path.exists("master.key"):
         register()
