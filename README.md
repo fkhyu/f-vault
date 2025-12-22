@@ -20,3 +20,13 @@ A simple terminal-based Python password manager with an intuitive UI. The applic
 - **Encryption**: AES-GCM (via `cryptography`)
 - **Key Derivation**: Argon2
 - **Dependencies**: `cryptography`, `argon2-cffi`, `termcolor`, `bullet`, `pyperclip`
+
+## How to use
+
+- Clone repo
+- Use main.py when you can
+
+OR
+
+- Download version for your OS from Releases
+Builds are very buggy and unstable. I recommend using .py script instead.
