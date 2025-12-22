@@ -7,6 +7,7 @@ from termcolor import colored, cprint
 from getpass import getpass
 from bullet import Bullet, colors
 import pyperclip
+from pynput.keyboard import Key, Controller
 
 session_started = False
 session_start_time = None
@@ -17,6 +18,8 @@ ASCII_logo = r"""
 ▙▖▄▖▌▌▀▌▌▌▐ ▜▘
 ▌   ▚▘█▌▙▌▐▖▐▖
 """
+
+keyboard = Controller()
 
 
 def cntr(text: str, h: bool, v: bool, text_rows: int, bottomPadding: bool) -> str:
@@ -139,7 +142,7 @@ def home():
 
 
 def handle_home_choice():    
-    choice = input("").strip()
+    choice = input(cntr("", True, False, 0, False)).strip()
     
     if choice == "1":
         add_new_password()
@@ -293,6 +296,9 @@ def add_new_password():
 
 
 def my_passwords():
+    # TODO: handle Esc key to go back
+
+
     clear()
     if not session_started:
         print("Please log in first.")
