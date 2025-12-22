@@ -1,6 +1,6 @@
-# f-vault
+# F-Vault
 
-## Faru
+### Made by Faru
 
 This is my simple password manager made for Hack Club's Hackvault
 
