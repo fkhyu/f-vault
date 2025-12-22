@@ -19,6 +19,16 @@ ASCII_logo = r"""
 ▌   ▚▘█▌▙▌▐▖▐▖
 """
 
+large_ascii_logo = r"""
+`7MM^^^YMM `7MMF'   `7MF'                `7MM   mm    
+  MM    `7   `MA     ,V                    MM   MM    
+  MM   d      VM:   ,V ,6"Yb.`7MM  `7MM    MM mmMMmm  
+  MM""MM       MM.  M'8)   MM  MM    MM    MM   MM    
+  MM   Y mmmmm `MM A'  ,pm9MM  MM    MM    MM   MM    
+  MM            :MM;  8M   MM  MM    MM    MM   MM    
+.JMML.           VF   `Moo9^Yo.`Mbod"YML..JMML. `Mbmo 
+"""
+
 
 def cntr(text: str, h: bool, v: bool, text_rows: int, bottomPadding: bool) -> str:
     lines = text.split('\n')
@@ -498,7 +508,7 @@ def secret_function():
 
 if __name__ == "__main__":
     clear()
-    cprint(cntr(ASCII_logo, True, True, 0, True), 'cyan')
+    cprint(cntr(large_ascii_logo, True, True, 0, True), 'cyan')
     time.sleep(1)
     clear()
     if not os.path.exists("master.key"):
