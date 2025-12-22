@@ -5,7 +5,7 @@ import json
 import time
 from termcolor import colored, cprint
 from getpass import getpass
-from bullet import Bullet, keyhandler
+from bullet import Bullet, colors
 import pyperclip
 
 session_started = False
@@ -46,7 +46,7 @@ def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def register():
-    print(cntr(f"          Welcome to {colored('F-Vault', 'blue')}!", True, True, 2, False))
+    print(cntr(f"          Welcome to {colored('F-Vault', 'cyan')}!", True, True, 2, False))
     print(cntr(f"{colored('         Enter your master password to start:', 'white')}\n", True, False, 2, True))
     first = getpass(cntr("", True, False, 0, True))
     clear()
@@ -68,7 +68,7 @@ def register():
 
 
 def login():
-    print(cntr(f"           Welcome back to {colored('F-Vault', 'blue')}!", True, True, 2, False))
+    print(cntr(f"           Welcome back to {colored('F-Vault', 'cyan')}!", True, True, 2, False))
     print(cntr(f"{colored('         Enter your master password:', 'white')}\n", True, False, 2, True))
     entered_password = getpass(cntr("", True, False, 0, True))
 
@@ -122,9 +122,10 @@ def home():
     menu_text = """
 ==--==--== Home ==--==--==
 
-  1. Add New Password     
-  2. My Passwords         
-  3. Logout               
+1. Add New Password 
+2. My Passwords     
+3. Remove Password  
+0. Logout           
           
 ==--==--==--==--==--==--==
           """ 
@@ -145,6 +146,8 @@ def handle_home_choice():
     elif choice == "2":
         my_passwords()
     elif choice == "3":
+        remove_password()
+    elif choice == "0":
         logout()
 
 def logout():
@@ -155,6 +158,72 @@ def logout():
     session_password = None
     print("You have been logged out.")
     exit()
+
+def remove_password():
+    clear()
+    if not session_started:
+        login()
+        return
+    
+    if not os.path.exists("vault.bin"):
+        print(cntr("No passwords stored yet.", True, True, 0, True))
+        time.sleep(1)
+        clear()
+        home()
+        return
+    
+    with open("vault.bin", "rb") as f:
+        blob = f.read()
+
+        try: 
+            vault = decrypt_vault(blob, session_password)
+        except Exception as e:
+            cprint(cntr("Failed to decrypt vault. Cannot remove passwords.", True, True, 0, True), "red")
+            time.sleep(1)
+            clear()
+            home()
+            return
+        
+        passwords = []
+
+        for entry in vault["entries"]:
+            passwords.append(json.dumps(entry))
+
+        choices = [json.loads(p)['title'] + " (" + json.loads(p)['username'] + ")" for p in passwords]
+
+        cli = Bullet(
+            prompt = "Select a password to remove:",
+            choices = choices,
+            margin = 1,
+            shift = 1,
+            bullet = "➤",
+            background_on_switch = colors.background['red'],
+            word_on_switch = colors.foreground['white']
+        )
+
+        selected_password = cli.launch()
+        selected_index = choices.index(selected_password)
+
+        confirmation = input(cntr(f"Are you sure you want to remove the password entry '{selected_password}'? (y/n): ", True, False, 0, True)).strip().lower()
+        if confirmation != 'y':
+            clear()
+            print(cntr("Cancelled.", True, True, 0, True))
+            time.sleep(1)
+            clear()
+            home()
+            return
+
+        del vault['entries'][selected_index]
+
+        encrypted_blob = encrypt_vault(vault, session_password)
+        with open("vault.bin", "wb") as f:
+            f.write(encrypted_blob)
+
+        clear()
+        print(cntr(f"The password entry '{selected_password}' has been removed.", True, True, 0, True))
+        time.sleep(1)
+        clear()
+        home()
 
 def add_new_password():
     clear()
@@ -217,7 +286,7 @@ def add_new_password():
         f.write(encrypted_blob)
 
     clear()
-    print(f"Password for {title} added successfully.")
+    cprint(cntr(f"Password added successfully!", True, True, 0, True), 'green')
     time.sleep(1)
     clear()
     home()
@@ -274,14 +343,14 @@ def my_passwords():
         pyperclip.copy(password)
 
         clear()
-        print(cntr(f"The password entry '{selected_password}' has been copied to your clipboard.", True, True, 0, True))
+        cprint(cntr("Copied!", True, True, 0, True), 'green')
         time.sleep(1)
         clear()
         home()
 
 if __name__ == "__main__":
     clear()
-    cprint(cntr(ASCII_logo, True, True, 3, True), 'blue')
+    cprint(cntr(ASCII_logo, True, True, 0, True), 'cyan')
     time.sleep(2)
     clear()
     if not os.path.exists("master.key"):
