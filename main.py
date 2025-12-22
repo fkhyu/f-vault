@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import argon2
 import os
@@ -58,10 +60,10 @@ def clear():
 
 def register():
     print(cntr(f"          Welcome to {colored('F-Vault', 'cyan')}!", True, True, 2, False))
-    print(cntr(f"{colored('         Enter your master password to start:', 'white')}\n", True, False, 2, True))
+    print(cntr("         Enter your master password to start:\n", True, False, 2, True))
     first = getpass(cntr("", True, False, 0, True))
     clear()
-    confirmation = getpass(cntr(f"{colored('        Confirm master password:\n', 'white')}\n", True, True, 0, False))
+    confirmation = getpass(cntr("        Confirm master password:\n", True, True, 0, False))
 
     if first != confirmation:
         print("Passwords do not match. Please try again.")
@@ -79,8 +81,8 @@ def register():
 
 
 def login():
-    print(cntr(f"           Welcome back to {colored('F-Vault', 'cyan')}!", True, True, 2, False))
-    print(cntr(f"{colored('         Enter your master password:', 'white')}\n", True, False, 2, True))
+    print(cntr("           Welcome back to F-Vault!", True, True, 2, False))
+    print(cntr("         Enter your master password:\n", True, False, 2, True))
     entered_password = getpass(cntr("", True, False, 0, True))
 
     with open("master.key", "rb") as f:
@@ -341,7 +343,7 @@ def add_new_password():
     clear()
 
     while True:
-        password = getpass(cntr(f"Enter the password for {title}:\n", True, True, 0, True))
+        password = getpass(cntr("Enter the password:\n", True, True, 0, True))
         if password.strip() == "":
             print("Password cannot be empty.")
             continue
