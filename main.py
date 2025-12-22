@@ -279,8 +279,6 @@ def my_passwords():
         clear()
         home()
 
-
-
 if __name__ == "__main__":
     clear()
     cprint(cntr(ASCII_logo, True, True, 3, True), 'blue')
