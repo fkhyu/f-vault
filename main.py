@@ -317,8 +317,6 @@ def my_passwords():
             home()
             return
         
-        # TODO: implement bullet menu for better nav + hide pass and copy on selection
-
         passwords = []
 
         for entry in vault["entries"]:
