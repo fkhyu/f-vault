@@ -155,6 +155,8 @@ def handle_home_choice():
         change_master_password()
     elif choice == "0":
         logout()
+    elif choice == "67":
+        secret_function()
 
 def logout():
     clear()
@@ -479,6 +481,22 @@ def change_master_password():
     clear()
     cprint(cntr("Master password changed successfully.", True, True, 0, True), "green")
     time.sleep(1)
+    clear()
+    home()
+
+
+def secret_function():
+    the_message = """
+ ██████╗███████╗
+██╔════╝╚════██║
+███████╗    ██╔╝
+██╔═══██╗  ██╔╝ 
+╚██████╔╝  ██║  
+ ╚═════╝   ╚═╝  
+"""
+    clear()
+    print(cntr(the_message, True, True, 0, True))
+    time.sleep(3)
     clear()
     home()
 
