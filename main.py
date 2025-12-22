@@ -5,6 +5,8 @@ import json
 import time
 from termcolor import colored, cprint
 from getpass import getpass
+from bullet import Bullet, keyhandler
+import pyperclip
 
 session_started = False
 session_start_time = None
@@ -44,10 +46,11 @@ def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def register():
-    print(cntr(f"Welcome to {colored('F-Vault', 'blue')}!", True, False, 2, False))
-    first = getpass(cntr(f"{colored('Enter your master password to start:', 'white')}\n", True, False, 2, True))
+    print(cntr(f"          Welcome to {colored('F-Vault', 'blue')}!", True, True, 2, False))
+    print(cntr(f"{colored('         Enter your master password to start:', 'white')}\n", True, False, 2, True))
+    first = getpass(cntr("", True, False, 0, True))
     clear()
-    confirmation = getpass(cntr(f"{colored('Confirm master password:', 'white')}\n", True, True, 1, True))
+    confirmation = getpass(cntr(f"{colored('        Confirm master password:\n', 'white')}\n", True, True, 0, False))
 
     if first != confirmation:
         print("Passwords do not match. Please try again.")
@@ -57,8 +60,10 @@ def register():
     hashed_password = ph.hash(first)
     with open("master.key", "wb") as f:
         f.write(hashed_password.encode())
-    print("Master password set successfully.")
-
+    clear()
+    print(cntr("Master password set successfully.", True, True, 0, True))
+    time.sleep(1)
+    clear()
     login()
 
 
@@ -132,7 +137,7 @@ def home():
     handle_home_choice()
 
 
-def handle_home_choice():
+def handle_home_choice():    
     choice = input("").strip()
     
     if choice == "1":
@@ -147,6 +152,7 @@ def logout():
     global session_started
     session_started = False
     session_start_time = None
+    session_password = None
     print("You have been logged out.")
     exit()
 
@@ -156,9 +162,28 @@ def add_new_password():
         print("Please log in first.")
         return
     
-    title = input("Enter the title for the password (e.g. Gmail):\n")
-    username = input(f"Enter the username/email associated with {title}:\n")
-    password = getpass(f"Enter the password for {title}:\n")
+    # ask as long as values are empty
+
+    while True:
+        title = input("Enter the title for the password (e.g. Gmail):\n")
+        if title.strip() == "":
+            print("Title cannot be empty.")
+            continue
+        break
+
+    while True:
+        username = input(f"Enter the username/email associated with {title}:\n")
+        if username.strip() == "":
+            print("Username/Email cannot be empty.")
+            continue
+        break
+
+    while True:
+        password = getpass(f"Enter the password for {title}:\n")
+        if password.strip() == "":
+            print("Password cannot be empty.")
+            continue
+        break
 
     vault = {}
     if os.path.exists("vault.bin"):
@@ -168,6 +193,9 @@ def add_new_password():
                 vault = decrypt_vault(blob, session_password)
             except Exception as e:
                 print("Failed to decrypt vault. Cannot add new password.")
+                time.sleep(1)
+                clear()
+                home()
                 return
             
         vault["entries"].append({
@@ -202,7 +230,10 @@ def my_passwords():
         return
     
     if not os.path.exists("vault.bin"):
-        print("No passwords stored yet.")
+        print(cntr("No passwords stored yet.", True, True, 0, True))
+        time.sleep(1)
+        clear()
+        home()
         return
     
     with open("vault.bin", "rb") as f:
@@ -212,20 +243,41 @@ def my_passwords():
             vault = decrypt_vault(blob, session_password)
         except Exception as e:
             print("Failed to decrypt vault. Cannot display passwords.")
+            time.sleep(1)
+            clear()
+            home()
             return
         
-        print("Your stored passwords:")
+        # TODO: implement bullet menu for better nav + hide pass and copy on selection
+
+        passwords = []
 
         for entry in vault["entries"]:
-            print(f"Title: {entry['title']}")
-            print(f"Username/Email: {entry['username']}")
-            print(f"Password: {entry['password']}")
-            print("-"*20)
+            passwords.append(json.dumps(entry))
 
-        input("Press Enter to return to home...")
+        choices = [json.loads(p)['title'] + " (" + json.loads(p)['username'] + ")" for p in passwords]
+
+        cli = Bullet(
+            prompt = "Select a password to copy:\n",
+            choices = choices,
+            margin = 1,
+            shift = 1,
+            bullet = "➤"
+        )
+
+        
+
+        selected_password = cli.launch()
+        selected_index = choices.index(selected_password)
+        password = vault["entries"][selected_index]['password']
+
+        pyperclip.copy(password)
+
+        clear()
+        print(cntr(f"The password entry '{selected_password}' has been copied to your clipboard.", True, True, 0, True))
+        time.sleep(1)
         clear()
         home()
-
 
 
 
