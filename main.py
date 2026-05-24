@@ -59,12 +59,11 @@ def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def register():
-    print(cntr(f"          Welcome to {colored('F-Vault', 'cyan')}!", True, True, 2, False))
-    print(cntr("         Enter your master password to start:\n", True, False, 2, True))
+    print(cntr(f"Welcome to {colored('F-Vault', 'cyan')}!", True, True, 2, False))
+    print(cntr("Enter your master password to start:\n", True, False, 2, True))
     first = getpass(cntr("", True, False, 0, True))
     clear()
-    confirmation = getpass(cntr("        Confirm master password:\n", True, True, 0, False))
-
+    confirmation = getpass(cntr("Confirm master password:\n", True, True, 0, False))
     if first != confirmation:
         print("Passwords do not match. Please try again.")
         return
@@ -81,8 +80,8 @@ def register():
 
 
 def login():
-    print(cntr("           Welcome back to F-Vault!", True, True, 2, False))
-    print(cntr("         Enter your master password:\n", True, False, 2, True))
+    print(cntr("Welcome back to F-Vault!", True, True, 2, False))
+    print(cntr("Enter your master password:\n", True, False, 2, True))
     entered_password = getpass(cntr("", True, False, 0, True))
 
     with open("master.key", "rb") as f:
@@ -137,8 +136,9 @@ def home():
 
 1. Add New Password         
 2. My Passwords             
-3. Update Password          
-4. Remove Password          
+3. My Codes
+4. Update Password          
+5. Remove Password          
 9. Change Master Password   
 0. Logout                   
 
@@ -161,8 +161,10 @@ def handle_home_choice():
     elif choice == "2":
         my_passwords()
     elif choice == "3":
-        update_password()
+        my_codes()
     elif choice == "4":
+        update_password()
+    elif choice == "5":
         remove_password()
     elif choice == "9":
         change_master_password()
@@ -179,6 +181,21 @@ def logout():
     session_password = None
     print("You have been logged out.")
     exit()
+
+def my_codes():
+    clear()
+    if not session_started:
+        login()
+        return
+
+    if not os.path.exists("codes.bin"):
+        print(cntr("No codes stored yet.", True, True, 0, True))
+        time.sleep(1)
+        clear()
+        home()
+        return
+    
+    
 
 def update_password():
     if not session_started:
